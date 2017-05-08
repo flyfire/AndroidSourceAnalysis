@@ -1,1 +1,10 @@
-   
+从setContentView开始看
+AppCompatActivity.setContentView
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffdprrttqhj311205gaba.jpg)
+AppCompatActivity.getDelegate
+![](http://ww3.sinaimg.cn/large/006tNc79ly1ffdptzk9b2j312m084dhd.jpg)
+AppCompatDelegate.create
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffdpvgmf4kj31a00hwtep.jpg)
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffdpwip835j30ua090ju6.jpg)
+AppCompatDelegateImplV9.setContentView
+![](http://ww3.sinaimg.cn/large/006tNc79ly1ffdpyqn4fij31j809mwhm.jpg)   
