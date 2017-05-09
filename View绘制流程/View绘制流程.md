@@ -75,6 +75,18 @@ Choreographer.postCallback posts a callback to run on the next frame.Choreograph
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1ffexj2s85zj31fg0ja46p.jpg)
 ![](http://ww3.sinaimg.cn/large/006tNc79ly1ffexjurpdfj31dw06ognl.jpg)
 ![](http://ww4.sinaimg.cn/large/006tNc79ly1ffexkoh68jj31e00mgtdx.jpg)
+**ViewRootImpl.performMeasure**方法调用了View的measure方法。
+![](http://ww1.sinaimg.cn/large/006tNc79ly1ffextwls4xj31hm09kq5e.jpg)
+**ViewRootImpl.performLayout**方法调用了View的layout方法。
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffexwnzwbhj31fm0g643c.jpg)
+**ViewRootImpl.performDraw**方法调用了**ViewRootImpl.draw**方法，**draw**调用了**drawSoftware**方法，在**drawSoftware**中调用了**View.draw(canvas)**。
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffexz9twjjj31ee0hqq74.jpg)
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffey13hvnuj31gy04umxx.jpg)
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffey3clh60j319609wtb9.jpg)
+进View源码从**measure**方法看，可以看到回调了**onMeasure**方法，**layout**方法中回调了**onLayout**方法。重点看下**draw**方法。
+![](http://ww2.sinaimg.cn/large/006tNc79ly1ffey74kxm1j31kw0scwns.jpg)
+![](http://ww1.sinaimg.cn/large/006tNc79ly1ffey8f7r98j31cm0veqav.jpg)
+
 
 
 
