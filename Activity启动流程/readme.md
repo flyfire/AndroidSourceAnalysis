@@ -79,7 +79,7 @@ ActivityStackSupervisor类与ActivityStack类的调用流程:
 ActivityStackSupervisor类的startSpecificActivityLocked方法调用realStartActivityLocked方法, 执行真正的启动Activity.在ActivityStackSupervisor的realStartActivityLocked方法中, 含有启动的核心方法scheduleLaunchActivity, 即调用IApplicationThread的scheduleLaunchActivity方法.IApplicationThread的实现是ApplicationThread, 而ApplicationThread是ActivityThread的内部类, 即使用ApplicationThread类的scheduleLaunchActivity方法处理Activity启动.最终由ActivityThread完成Activity的创建与绘制.
 
 ActivityThread#handleLaunchActivity:handleLaunchActivity调用performLaunchActivity方法, 继续执行启动, 在成功后, 调用handleResumeActivity方法, 执行显示Activity.
-
+![](http://ww3.sinaimg.cn/large/006tKfTcly1ffhn8c4z5tj31kw0kfjyg.jpg)
 ActivityThread#performLaunchActivity:performLaunchActivity方法是Activity启动的核心:
 + 获取Activity的组件信息(ComponentName);
 + 根据组件使用反射创建Activity(newActivity);
@@ -89,5 +89,147 @@ ActivityThread#performLaunchActivity:performLaunchActivity方法是Activity启�
 
 通过分析performLaunchActivity, 我们也更加清晰Activity的生命周期, 顺序如下, onCreate, onStart, onRestoreInstanceState, onPostCreate. 注意, onStart是Activity处理; 其余三个是Instrumentation处理, 支持继承重写相应方法, 自行处理.
 
+```
+private Activity performLaunchActivity(ActivityClientRecord r, Intent customIntent) {
+        // System.out.println("##### [" + System.currentTimeMillis() + "] ActivityThread.performLaunchActivity(" + r + ")");
+
+        ActivityInfo aInfo = r.activityInfo;
+        if (r.packageInfo == null) {
+            r.packageInfo = getPackageInfo(aInfo.applicationInfo, r.compatInfo,
+                    Context.CONTEXT_INCLUDE_CODE);
+        }
+
+        ComponentName component = r.intent.getComponent();
+        if (component == null) {
+            component = r.intent.resolveActivity(
+                mInitialApplication.getPackageManager());
+            r.intent.setComponent(component);
+        }
+
+        if (r.activityInfo.targetActivity != null) {
+            component = new ComponentName(r.activityInfo.packageName,
+                    r.activityInfo.targetActivity);
+        }
+
+        Activity activity = null;
+        try {
+            java.lang.ClassLoader cl = r.packageInfo.getClassLoader();
+            activity = mInstrumentation.newActivity(
+                    cl, component.getClassName(), r.intent);
+            StrictMode.incrementExpectedActivityCount(activity.getClass());
+            r.intent.setExtrasClassLoader(cl);
+            r.intent.prepareToEnterProcess();
+            if (r.state != null) {
+                r.state.setClassLoader(cl);
+            }
+        } catch (Exception e) {
+            if (!mInstrumentation.onException(activity, e)) {
+                throw new RuntimeException(
+                    "Unable to instantiate activity " + component
+                    + ": " + e.toString(), e);
+            }
+        }
+
+        try {
+            Application app = r.packageInfo.makeApplication(false, mInstrumentation);
+
+            if (localLOGV) Slog.v(TAG, "Performing launch of " + r);
+            if (localLOGV) Slog.v(
+                    TAG, r + ": app=" + app
+                    + ", appName=" + app.getPackageName()
+                    + ", pkg=" + r.packageInfo.getPackageName()
+                    + ", comp=" + r.intent.getComponent().toShortString()
+                    + ", dir=" + r.packageInfo.getAppDir());
+
+            if (activity != null) {
+                Context appContext = createBaseContextForActivity(r, activity);
+                CharSequence title = r.activityInfo.loadLabel(appContext.getPackageManager());
+                Configuration config = new Configuration(mCompatConfiguration);
+                if (r.overrideConfig != null) {
+                    config.updateFrom(r.overrideConfig);
+                }
+                if (DEBUG_CONFIGURATION) Slog.v(TAG, "Launching activity "
+                        + r.activityInfo.name + " with config " + config);
+                Window window = null;
+                if (r.mPendingRemoveWindow != null && r.mPreserveWindow) {
+                    window = r.mPendingRemoveWindow;
+                    r.mPendingRemoveWindow = null;
+                    r.mPendingRemoveWindowManager = null;
+                }
+                activity.attach(appContext, this, getInstrumentation(), r.token,
+                        r.ident, app, r.intent, r.activityInfo, title, r.parent,
+                        r.embeddedID, r.lastNonConfigurationInstances, config,
+                        r.referrer, r.voiceInteractor, window);
+
+                if (customIntent != null) {
+                    activity.mIntent = customIntent;
+                }
+                r.lastNonConfigurationInstances = null;
+                activity.mStartedActivity = false;
+                int theme = r.activityInfo.getThemeResource();
+                if (theme != 0) {
+                    activity.setTheme(theme);
+                }
+
+                activity.mCalled = false;
+                if (r.isPersistable()) {
+                    mInstrumentation.callActivityOnCreate(activity, r.state, r.persistentState);
+                } else {
+                    mInstrumentation.callActivityOnCreate(activity, r.state);
+                }
+                if (!activity.mCalled) {
+                    throw new SuperNotCalledException(
+                        "Activity " + r.intent.getComponent().toShortString() +
+                        " did not call through to super.onCreate()");
+                }
+                r.activity = activity;
+                r.stopped = true;
+                if (!r.activity.mFinished) {
+                    activity.performStart();
+                    r.stopped = false;
+                }
+                if (!r.activity.mFinished) {
+                    if (r.isPersistable()) {
+                        if (r.state != null || r.persistentState != null) {
+                            mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state,
+                                    r.persistentState);
+                        }
+                    } else if (r.state != null) {
+                        mInstrumentation.callActivityOnRestoreInstanceState(activity, r.state);
+                    }
+                }
+                if (!r.activity.mFinished) {
+                    activity.mCalled = false;
+                    if (r.isPersistable()) {
+                        mInstrumentation.callActivityOnPostCreate(activity, r.state,
+                                r.persistentState);
+                    } else {
+                        mInstrumentation.callActivityOnPostCreate(activity, r.state);
+                    }
+                    if (!activity.mCalled) {
+                        throw new SuperNotCalledException(
+                            "Activity " + r.intent.getComponent().toShortString() +
+                            " did not call through to super.onPostCreate()");
+                    }
+                }
+            }
+            r.paused = true;
+
+            mActivities.put(r.token, r);
+
+        } catch (SuperNotCalledException e) {
+            throw e;
+
+        } catch (Exception e) {
+            if (!mInstrumentation.onException(activity, e)) {
+                throw new RuntimeException(
+                    "Unable to start activity " + component
+                    + ": " + e.toString(), e);
+            }
+        }
+
+        return activity;
+    }
+```
 
 
