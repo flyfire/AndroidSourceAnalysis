@@ -1151,7 +1151,26 @@ final Method callback;
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1ffm6org293j30l90jwjsf.jpg)
 
 
-
+```
+ActivityStackSupervisor->ActivityManagerService:startProcessLocked(.)
+ActivityManagerService->ActivityManagerService:startProcessLocked(..)
+ActivityManagerService->Process:start()
+Process->Process:startViaZygote()
+Process->Process:zygoteSendArgsAndGetResult()
+Process->ZygoteInit:socket
+ZygoteInit->ZygoteInit:runSelectLoop()
+ZygoteInit->ZygoteConnection:runOnce()
+ZygoteConnection->ZygoteConnection:handleChildProc()
+ZygoteConnection->RuntimeInit:zygoteInit()
+RuntimeInit->RuntimeInit:applicationInit()
+RuntimeInit->RuntimeInit:invokeStaticMain()
+RuntimeInit->ActivityThread:main()
+ActivityThread->ActivityThread:attach()
+ActivityThread->ActivityManagerService:attachApplication()
+ActivityManagerService->ActivityManagerService:attachApplicationLocked()
+ActivityManagerService->ActivityStackSupervisor:attachApplicationLocked()
+ActivityStackSupervisor->ActivityManagerService:realStartActivityLocked()
+```
 
 
 
