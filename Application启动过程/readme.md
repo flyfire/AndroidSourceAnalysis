@@ -1,5 +1,5 @@
-http://gityuan.com/2016/10/09/app-process-create-2/ 
-http://www.jianshu.com/p/0fb33ccdf166
++ http://gityuan.com/2016/10/09/app-process-create-2/ 
++ http://www.jianshu.com/p/0fb33ccdf166
 
 Activity, Service, ContentProvider, BroadcastReceiver这四大组件,在启动的过程,当其所承载的进程不存在时需要调用startProcessLocked先创建进程.
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1ffm58opy7dj318g0xcdhy.jpg)
