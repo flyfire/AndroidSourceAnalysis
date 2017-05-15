@@ -5,6 +5,7 @@ Activity, Service, ContentProvider, BroadcastReceiver这四大组件,在启动�
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1ffm58opy7dj318g0xcdhy.jpg)
 
 ###Activity
+
 启动Activity过程: 调用startActivity,该方法经过层层调用,最终会调用ActivityStackSupervisor.java中的startSpecificActivityLocked,当activity所属进程还没启动的情况下,则需要创建相应的进程.
 
 [-> ActivityStackSupervisor.java]
@@ -18,6 +19,7 @@ Activity, Service, ContentProvider, BroadcastReceiver这四大组件,在启动�
 ![](http://ww1.sinaimg.cn/large/006tNc79ly1ffm5f3nc5xj31i40ya13m.jpg)
 
 ###ContentProvider
+
 ContentProvider处理过程: 调用ContentResolver.query该方法经过层层调用, 最终会调用到AMS.java中的getContentProviderImpl,当ContentProvider所对应进程不存在,则需要创建新进程.
 
 [-> AMS.java]
@@ -96,6 +98,7 @@ private final void startProcessLocked(
 ```
 
 ###启动时机
+
 刚解说了4大组件与进程创建的调用方法，那么接下来再来说说进程创建的触发时机有哪些？
 + 单进程App：对于这种情况，那么app首次启动某个组件时，比如通过调用startActivity来启动某个app，则先会触发创建该app进程，然后再启动该Activity。此时该app进程已创建，那么后续再该app中内部启动同一个activity或者其他组件，则都不会再创建新进程（除非该app进程被系统所杀掉）。
 + 多进程App: 对于这种情况，那么每个配置过android:process属性的组件的首次启动，则都分别需要创建进程。再次启动同一个activity，其则都不会再创建新进程（除非该app进程被系统所杀掉），但如果启动的是其他组件，则还需要再次判断其所对应的进程是否存在。
@@ -171,12 +174,14 @@ public class PackageParser {
 看完上面的源码.很显然对于android:process属性值不以”:“开头的进程名必须至少包含“.”字符。
 
 ###进程创建
+
 进程的创建过程交由系统进程system_server来完成的.
 ![](http://ww4.sinaimg.cn/large/006tNc79ly1ffm5r1d3q8j30mf0ec0th.jpg)
 
 ##进程启动全过程
 
 ###AMS.startProcessLocked
+
 ```
 final ProcessRecord startProcessLocked(String processName, ApplicationInfo info,
         boolean knownToBeDead, int intentFlags, String hostingType, ComponentName hostingName,
@@ -847,6 +852,7 @@ public final void bindApplication(String processName, ApplicationInfo appInfo,
 其中setCoreSettings()过程就是调用sendMessage(H.SET_CORE_SETTINGS, coreSettings) 来向主线程发送SET_CORE_SETTINGS消息.bindApplication方法的主要功能是依次向主线程发送消息H.SET_CORE_SETTINGS和H.BIND_APPLICATION. 接下来再来说说这两个消息的处理过程
 
 ###ActivityThread.handleSetCoreSettings
+
 [-> ActivityThread.java ::H]
 当主线程收到H.SET_CORE_SETTINGS,则调用handleSetCoreSettings
 
@@ -872,6 +878,7 @@ private void onCoreSettingsChange() {
 ```
 
 ###ActivityThread.handleBindApplication
+
 [-> ActivityThread.java ::H]
 当主线程收到H.BIND_APPLICATION,则调用handleBindApplication
 ```
@@ -975,6 +982,7 @@ private void handleBindApplication(AppBindData data) {
 + ActivityThread.mInitialApplication
 
 ###getPackageInfoNoCheck
+
 [-> ActivityThread.java]
 
 ```
@@ -1028,6 +1036,7 @@ private LoadedApk getPackageInfo(ApplicationInfo aInfo, CompatibilityInfo compat
 ```
 创建LoadedApk对象
 ###makeApplication
+
 [-> LoadedApk.java]
 ```
 public Application makeApplication(boolean forceDefaultAppClass,
@@ -1086,6 +1095,7 @@ public Application makeApplication(boolean forceDefaultAppClass,
 ```
 
 ### createAppContext
+
 [-> ContextImpl.java]
 ```
 static ContextImpl createAppContext(ActivityThread mainThread, LoadedApk packageInfo) {
@@ -1096,6 +1106,7 @@ static ContextImpl createAppContext(ActivityThread mainThread, LoadedApk package
 ```
 
 ###newApplication
+
 [-> Instrumentation.java]
 ```
 public Application newApplication(ClassLoader cl, String className, Context context)
@@ -1107,6 +1118,7 @@ public Application newApplication(ClassLoader cl, String className, Context cont
 创建Application对象, 该对象名来自于mApplicationInfo.className.
 
 ###rewriteRValues
+
 [-> LoadedApk.java] 
 
 ```
@@ -1132,6 +1144,7 @@ final Method callback;
     throw new RuntimeException("Failed to rewrite resource references for " + packageName,
             cause);
 }
+```
 
 ###总结
 
