@@ -34,3 +34,39 @@
 ![](https://ws4.sinaimg.cn/large/006tNc79ly1ffxz47is7oj31ek0w0ahr.jpg)
 ![](https://ws1.sinaimg.cn/large/006tNc79ly1ffxz4ftj9yj317q0e40vw.jpg)
 删除元素是将元素后面的拷贝到往前位移一位的位置，并将末尾元素置为null等待回收。
+改
+![](https://ws1.sinaimg.cn/large/006tNbRwly1ffxze7v9vwj317o0iywjc.jpg)
+查
+![](https://ws4.sinaimg.cn/large/006tNbRwly1ffxzf4uys3j316o0eewhw.jpg)
+
+清空
+![](https://ws1.sinaimg.cn/large/006tNbRwly1ffxzgxi5mej313y0eo40m.jpg)
+克隆
+![](https://ws2.sinaimg.cn/large/006tNbRwly1ffxzhlezb2j319i0ie0x1.jpg)
+
++ ArrayList 实际上是通过一个数组去保存数据的。当我们使用无参构造函数构造 ArrayList 时，则 ArrayList 的默认容量大小是10。
+
++ 当ArrayList容量不足以容纳全部元素时，ArrayList会重新设置容量：新的容量=“(原始容量x3)/2 + 1”;如果设置后的新容量还不够，则直接把新容量设置为传入的参数。
+
++ ArrayList 查找效率高，插入删除元素的效率低。
+
++ ArrayList 的克隆函数，即是将全部元素克隆到一个数组中。
+
++ ArrayList 实现 java.io.Serializable 的方式。当写入到输出流时，先写入“容量”，再依次写入“每一个元素”；当读出输入流时，先读取“容量”，再依次读取“每一个元素”。
+
+``toArray``
+
+![](https://ws1.sinaimg.cn/large/006tNbRwly1ffxzjp203hj31ae0j0dk4.jpg)
+![](https://ws4.sinaimg.cn/large/006tNbRwly1ffxzk4pgoyj31cm108499.jpg)
+
+toArray() 会抛出“java.lang.ClassCastException”异常原因: toArray()返回的是 Object[] 数组，Java不支持向下转型。(例如，将Object[]转换为的Integer[])
+解决方案
+
+```
+public static Integer[] vectorToArray2(ArrayList<Integer> v) {
+	Integer[] newText = (Integer[])v.toArray(new Integer[0]);
+	return newText;
+}
+```
+
+
