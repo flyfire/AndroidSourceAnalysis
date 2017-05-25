@@ -69,4 +69,149 @@ public static Integer[] vectorToArray2(ArrayList<Integer> v) {
 }
 ```
 
+迭代器实现
+
+```
+	/**
+     * An optimized version of AbstractList.Itr
+     */
+    private class Itr implements Iterator<E> {
+        // The "limit" of this iterator. This is the size of the list at the time the
+        // iterator was created. Adding & removing elements will invalidate the iteration
+        // anyway (and cause next() to throw) so saving this value will guarantee that the
+        // value of hasNext() remains stable and won't flap between true and false when elements
+        // are added and removed from the list.
+        protected int limit = ArrayList.this.size;
+
+        int cursor;       // index of next element to return
+        int lastRet = -1; // index of last element returned; -1 if no such
+        int expectedModCount = modCount;
+
+        public boolean hasNext() {
+            return cursor < limit;
+        }
+
+        @SuppressWarnings("unchecked")
+        public E next() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            int i = cursor;
+            if (i >= limit)
+                throw new NoSuchElementException();
+            Object[] elementData = ArrayList.this.elementData;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i + 1;
+            return (E) elementData[lastRet = i];
+        }
+
+        public void remove() {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+
+            try {
+                ArrayList.this.remove(lastRet);
+                cursor = lastRet;
+                lastRet = -1;
+                expectedModCount = modCount;
+                limit--;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void forEachRemaining(Consumer<? super E> consumer) {
+            Objects.requireNonNull(consumer);
+            final int size = ArrayList.this.size;
+            int i = cursor;
+            if (i >= size) {
+                return;
+            }
+            final Object[] elementData = ArrayList.this.elementData;
+            if (i >= elementData.length) {
+                throw new ConcurrentModificationException();
+            }
+            while (i != size && modCount == expectedModCount) {
+                consumer.accept((E) elementData[i++]);
+            }
+            // update once at end of iteration to reduce heap write traffic
+            cursor = i;
+            lastRet = i - 1;
+
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+        }
+    }
+```
+
+```
+	/**
+     * An optimized version of AbstractList.ListItr
+     */
+    private class ListItr extends Itr implements ListIterator<E> {
+        ListItr(int index) {
+            super();
+            cursor = index;
+        }
+
+        public boolean hasPrevious() {
+            return cursor != 0;
+        }
+
+        public int nextIndex() {
+            return cursor;
+        }
+
+        public int previousIndex() {
+            return cursor - 1;
+        }
+
+        @SuppressWarnings("unchecked")
+        public E previous() {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+            int i = cursor - 1;
+            if (i < 0)
+                throw new NoSuchElementException();
+            Object[] elementData = ArrayList.this.elementData;
+            if (i >= elementData.length)
+                throw new ConcurrentModificationException();
+            cursor = i;
+            return (E) elementData[lastRet = i];
+        }
+
+        public void set(E e) {
+            if (lastRet < 0)
+                throw new IllegalStateException();
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+
+            try {
+                ArrayList.this.set(lastRet, e);
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+
+        public void add(E e) {
+            if (modCount != expectedModCount)
+                throw new ConcurrentModificationException();
+
+            try {
+                int i = cursor;
+                ArrayList.this.add(i, e);
+                cursor = i + 1;
+                lastRet = -1;
+                expectedModCount = modCount;
+                limit++;
+            } catch (IndexOutOfBoundsException ex) {
+                throw new ConcurrentModificationException();
+            }
+        }
+    }
+```
 
