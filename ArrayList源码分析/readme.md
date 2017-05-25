@@ -215,3 +215,7 @@ public static Integer[] vectorToArray2(ArrayList<Integer> v) {
     }
 ```
 
+``Iterator``接口有方法``hasNext``,``next``,``remove``,``forEachRemaining``(since 1.8)方法。
+``ListIterator``接口扩展了``Iterator``接口，有``hasNext``,``next``,``hasPrevious``,``previous``,``nextIndex``,``previousIndex``,``remove``,``set``,``add``方法。
+
+``previous``和``next``方法会设置``lastRet``的值，``remove``和``set``方法会使用``lastRet``的值，如果``lastRet``为负将抛出异常。``remove``和``add``都会将``lastRet``的值重置为-1。
